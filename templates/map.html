@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thessaloniki</title>
+    <meta charset="utf-8" />
+    <link 
+        rel="stylesheet" 
+        href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"
+    />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        #controls {
+            position: fixed;
+            float: right;
+            right: 0;
+            z-index: 1000;
+            padding: 20px;
+            background-color: #FFF;
+            margin: 20px 50px;
+            display: block;
+            box-shadow: 2px 2px 4px 2px rgba(0,0,0,0.14);
+        }
+
+        .control {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div class="control">
+            <label for="id_q">Text Search</label>
+            <input type="text" id="id_q">
+        </div>
+        <div class="control">
+            <label for="id_year">School Year</label>
+            <select id="id_year" name="school">
+                <option value="">All Years</option>
+                {% for year in years %}
+                <option value="{{year.year}}">{{year.year}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="control">
+            <label for="id_school">Select School</label>
+            <select id="id_school" name="school">
+                <option value="">All Schools</option>
+                {% for school in schools %}
+                <option value="{{school.id}}">{{school.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div id="map"></div>
+
+    <script
+        src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js">
+    </script>
+
+    <script>
+
+        function drawMap(data) {
+            markerGroup.clearLayers();
+            data.forEach(item => {
+                L.marker([item.lat, item.lon])
+                    .addTo(markerGroup)
+                    .bindPopup(item.name);
+            });
+        }
+
+        function fetchData() {
+            let qElem = document.getElementById("id_q");
+            let qText = encodeURIComponent(qElem.value);
+            let schoolElem = document.getElementById("id_school");
+            let schoolId = schoolElem.options[schoolElem.selectedIndex].value;
+            let yearElem = document.getElementById("id_year");
+            let yearId = yearElem.options[yearElem.selectedIndex].value;
+
+            fetch("/search?school=" + schoolId + "&year=" + yearId + "&q=" + qText)
+                .then(data => data.json())
+                .then(drawMap);
+        }
+
+        let map = L.map('map').setView([40.6207348, 22.9285512], 14);
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18
+        }).addTo(map);
+        let markerGroup = L.layerGroup().addTo(map);
+
+        ["id_q", "id_year", "id_school"].forEach(id => {
+           document.getElementById(id).addEventListener("change", e => {
+               fetchData();
+           })
+        });
+
+        fetchData();
+
+    </script>
+</body>
+</html>
