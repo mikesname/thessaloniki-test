@@ -38,11 +38,11 @@
     <div id="controls">
         <div class="control">
             <label for="id_q">Text Search</label>
-            <input type="text" id="id_q">
+            <input name="q" type="text" id="id_q">
         </div>
         <div class="control">
             <label for="id_year">School Year</label>
-            <select id="id_year" name="school">
+            <select id="id_year" name="year">
                 <option value="">All Years</option>
                 {% for year in years %}
                 <option value="{{year.year}}">{{year.year}}</option>
@@ -72,7 +72,7 @@
             data.forEach(item => {
                 L.marker([item.lat, item.lon])
                     .addTo(markerGroup)
-                    .bindPopup(item.name);
+                    .bindPopup("<div><h2>" + item.name + "</h2>blah blah</div>");
             });
         }
 
@@ -84,7 +84,9 @@
             let yearElem = document.getElementById("id_year");
             let yearId = yearElem.options[yearElem.selectedIndex].value;
 
-            fetch("/search?school=" + schoolId + "&year=" + yearId + "&q=" + qText)
+            fetch("/search?school=" + schoolId + "&year=" + yearId + "&q=" + qText, {
+              headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
                 .then(data => data.json())
                 .then(drawMap);
         }

@@ -17,6 +17,9 @@ $app->get('/', function (Request $request, Response $response, array $args) {
 });
 
 $app->get('/search', function (Request $request, Response $response, array $args) {
+    $years = $this->db->query('SELECT DISTINCT year FROM study ORDER BY year')->fetchAll();
+    $schools = $this->db->query('SELECT id, name FROM school')->fetchAll();
+
     $q = $this->db->prepare('
     SELECT 
         CAST(substring(substring_index(ST_AsWKT(a.loc), \' \', 1), 7) as DECIMAL(10,6)) as lon, 
@@ -33,13 +36,25 @@ $app->get('/search', function (Request $request, Response $response, array $args
       AND (:name = \'\' OR :name IS NULL OR MATCH(p.name) AGAINST(:name IN NATURAL LANGUAGE MODE))'
     );
 
-    $params = [
+    $sqlparams = [
         ":school" => $request->getQueryParam("school"),
         ":year" => $request->getQueryParam("year"),
         ":name" => $request->getQueryParam("q")
     ];
-    $q->execute($params);
+    $q->execute($sqlparams);
+    $results = $q->fetchAll();
 
-    return $response->withJson($q->fetchAll());
+    return $request->isXhr()
+        ? $response->withJson($results)
+        : $this->view->render($response, "search.html", [
+            "schools" => $schools,
+            "years" => $years,
+            "params" => [
+                "name" => $request->getQueryParam("q"),
+                "school" => $request->getQueryParam("school"),
+                "year" => $request->getQueryParam("year"),
+            ],
+            "results" => $results
+        ]);
 });
 

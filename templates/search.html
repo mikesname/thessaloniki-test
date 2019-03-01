@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thessaloniki Search</title>
+    <meta charset="utf-8" />
+    <style>
+        .control, #results {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search</h1>
+    <form action="/search">
+        <div class="control">
+            <label for="id_q">Text Search</label>
+            <input name="q" type="text" id="id_q" value="{{params.name}}">
+        </div>
+        <div class="control">
+            <label for="id_year">School Year</label>
+            <select id="id_year" name="year">
+                <option value="">All Years</option>
+                {% for year in years %}
+                <option {% if year.year == params.year %}selected{% endif %} value="{{year.year}}">{{year.year}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="control">
+            <label for="id_school">Select School</label>
+            <select id="id_school" name="school">
+                <option value="">All Schools</option>
+                {% for school in schools %}
+                <option {% if school.id == params.school %}selected{% endif %} value="{{school.id}}">{{school.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">Search</button>
+    </form>
+    <div id="results">
+        {% if results %}
+        <ul>
+        {% for result in results %}
+            <li>{{result.name}}</li>
+        {% endfor %}
+        </ul>
+        {% else %}
+            <b>No results</b>
+        {% endif %}
+    </div>
+</body>
+</html>
